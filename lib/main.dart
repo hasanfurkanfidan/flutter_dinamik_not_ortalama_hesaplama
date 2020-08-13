@@ -42,6 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
            if(formKey.currentState.validate()){
              formKey.currentState.save();
            }
+
         },
         child: Icon(Icons.add),
       ),
@@ -73,7 +74,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     onSaved: (girilenDeger){
                       _dersAdi = girilenDeger;
                       setState(() {
-                        tumDersler.add(Ders(_dersAdi, dersHarfDegeri, dersKredi)) ;
+                        tumDersler.add(Ders(_dersAdi, dersHarfDegeri, dersKredi));
+
+                        setState(() {
+                          _ortalama = 0;
+                          ortalamaYiHesapla();
+                        });
+
                       });
 
                     },
@@ -149,21 +156,23 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-          Container(
-           margin: EdgeInsets.symmetric(vertical: 10),
-            color: Colors.blue,
-
-            height: 70,
-            decoration: BoxDecoration(
-
-              border: BorderDirectional(
-                top: BorderSide(color: Colors.blue,width: 2),
-                bottom: BorderSide(color: Colors.blue,width: 2)
-              )
-            ),
-            child: Center(child: Text("Ortalama Bul",style: TextStyle(fontSize: 27,color: Colors.white),)),
-
-          ),
+         Container(
+           margin: EdgeInsets.only(top: 10),
+           child: Center(child: RichText(
+             textAlign: TextAlign.center,
+             text: TextSpan(
+               children: [
+                 TextSpan(
+                   text: "Ortalama:  ",
+                   style: TextStyle(fontSize: 30)
+                 ),
+                 TextSpan(text: "$_ortalama",style: (TextStyle(fontSize: 30)))
+               ]
+             ),
+           )),
+           color: Colors.blue,
+           height: 50.0,
+         ),
           Expanded(
             child: Container(
              child: ListView.builder(itemBuilder: _listeElemanlariniOlustur,itemCount: tumDersler.length,),
@@ -259,12 +268,40 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _listeElemanlariniOlustur(BuildContext context, int index) {
-    return Card(
-      child: ListTile(
-        title: Text(tumDersler[index]._ad),
-        subtitle: Text(tumDersler[index]._kredi.toString() + "kredi Ders Not Değer:"+tumDersler[index]._harfDegeri.toString()),
+    return Dismissible(
+      key: Key(index.toString()),
+      direction: DismissDirection.startToEnd,
+      onDismissed: (direction){
+        setState(() {
+          tumDersler.removeAt(index);
+
+          if(tumDersler.isEmpty){
+            _ortalama = 0;
+          }
+          else{
+            ortalamaYiHesapla();
+          }
+        });
+      },
+      child: Card(
+        child: ListTile(
+          title: Text(tumDersler[index]._ad),
+          subtitle: Text(tumDersler[index]._kredi.toString() + "kredi Ders Not Değer:"+tumDersler[index]._harfDegeri.toString()),
+        ),
       ),
     );
+  }
+
+  void ortalamaYiHesapla() {
+    double toplamNot = 0;
+     double toplamKredi = 0;
+    for(var oankiDers in tumDersler ){
+      var kredi = oankiDers._kredi;
+      var harfDegeri = oankiDers._harfDegeri;
+      toplamNot = toplamNot + harfDegeri;
+      toplamKredi +=kredi;
+    }
+    _ortalama = toplamNot/toplamKredi;
   }
 }
 class Ders{
